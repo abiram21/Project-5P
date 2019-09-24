@@ -7,6 +7,8 @@ use App\Client;
 use Illuminate\Http\Request;
 use App\Http\Requests\FoodStoreRequest;
 use App\Http\Requests\FoodUpdateRequest;
+use App\Http\Resources\FoodResource;
+
 
 class FoodController extends Controller
 {
@@ -16,29 +18,9 @@ class FoodController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index()
-    {
-     
-        try{
-            $response = array(
-                'status'=>"Failed",
-                'msg'=>'',
-                'is_success'=>false,
-                'data'=>''
-            );
-            $food = Food::all();
-            $response['status'] = "Success";
-            $response['msg'] = "Get all Food";
-            $response['is_success'] = true;
-            $response['data'] = array('client'=>client::all(),'food'=>$food);
-            return response()->json($response);
-        }
-        catch(Exception $e)
-        {
-            $response['status'] = "Failed";
-            $response['msg'] = $e->getMessage();
-            $response['is_success'] = false;
-            return response()->json($response); 
-        }
+    {  
+            $food = Food::with('client');
+            return FoodResource::collection($food->paginate());
     }
 
     /**
@@ -48,8 +30,7 @@ class FoodController extends Controller
      */
     public function create()
     {
-        $clients = Client::get()->pluck('phoneNo', 'id')->toArray();
-        return view('foods.create',compact('clients'));
+    
         
     }
     
@@ -63,13 +44,7 @@ class FoodController extends Controller
     public function store(FoodStoreRequest $request)
     {
     
-        try{
-            $response = array(
-                'status'=>"Failed",
-                'msg'=>'',
-                'is_success'=>false,
-                'data'=>''
-            );
+        
             $food = new Food();
 
                 $food->name = $request->name;
@@ -81,19 +56,8 @@ class FoodController extends Controller
                 $food->fac_id = 1;
 
                 $food->save();
-            $response['status'] = "Success";
-            $response['msg'] = "Add Food";
-            $response['is_success'] = true;
-            $response['data'] =$food;
-            return response()->json($response);
-        }
-        catch(Exception $e)
-        {
-            $response['status'] = "Failed";
-            $response['msg'] = $e->getMessage();
-            $response['is_success'] = false;
-            return response()->json($response); 
-        }
+           return FoodResource::collection($food->paginate());
+      
     }
 
     /**
@@ -104,27 +68,9 @@ class FoodController extends Controller
      */
     public function show($id)
     {
-        try{
-            $response = array(
-                'status'=>"Failed",
-                'msg'=>'',
-                'is_success'=>false,
-                'data'=>''
-            );
-            $food = Food::find($id);
-            $response['status'] = "Success";
-            $response['msg'] = "Get one Food";
-            $response['is_success'] = true;
-            $response['data'] = array('food'=>$food);
-            return response()->json($response);
-        }
-        catch(Exception $e)
-        {
-            $response['status'] = "Failed";
-            $response['msg'] = $e->getMessage();
-            $response['is_success'] = false;
-            return response()->json($response); 
-        }
+       
+            $food = Food::find($id)->with('client');
+            return FoodResource::collection($food->paginate(1));
     }
 
     /**
@@ -135,8 +81,7 @@ class FoodController extends Controller
      */
     public function edit(Food $food)
     {
-        $clients = Client::get()->pluck('phoneNo', 'id')->toArray();
-        return view('foods.edit', compact( 'clients'));
+      
     }
 
     /**
@@ -148,13 +93,7 @@ class FoodController extends Controller
      */
     public function update(Request $request,$id)
     {
-        try{
-            $response = array(
-                'status'=>"Failed",
-                'msg'=>'',
-                'is_success'=>false,
-                'data'=>''
-            );
+        
             $food = Food::find($id);
 
                 $food->name = $request->name;
@@ -166,19 +105,8 @@ class FoodController extends Controller
                 $food->fac_id = 1;
 
                 $food->save();
-            $response['status'] = "Success";
-            $response['msg'] = "Update Food";
-            $response['is_success'] = true;
-            $response['data'] =$food;
-            return response()->json($response);
-        }
-        catch(Exception $e)
-        {
-            $response['status'] = "Failed";
-            $response['msg'] = $e->getMessage();
-            $response['is_success'] = false;
-            return response()->json($response); 
-        }
+                return FoodResource::collection($food->paginate());
+       
     }
 
     /**
@@ -190,61 +118,21 @@ class FoodController extends Controller
 
     public function delete(Food $food)
     {
-        $clients = Client::get()->pluck('phoneNo', 'id')->toArray();
-        return view('foods.delete', compact('clients'));
+        
     }
 
     public function destroy($id)
     {
-        try{
-            $response = array(
-                'status'=>"Failed",
-                'msg'=>'',
-                'is_success'=>false,
-                'data'=>''
-            );
+        
             $food = Food::find($id);
             $food->delete();
-            $response['status'] = "Success";
-            $response['msg'] = "Delect Food";
-            $response['is_success'] = true;
-            return response()->json($response);
-        }
-        catch(Exception $e)
-        {
-            $response['status'] = "Failed";
-            $response['msg'] = $e->getMessage();
-            $response['is_success'] = false;
-            return response()->json($response); 
-        }
+            
     }
 
     public function getclient($name,$type,$qty)
     {
-        try{
-            $response = array(
-                'status'=>"Failed",
-                'msg'=>'',
-                'is_success'=>false,
-                'data'=>''
-            );
-            $findclient = Food::where('name','=',$name) -> where('type','=', $type)->where('minQty','<',$qty)->where('maxQty','>',$qty)->pluck('client_id')->toArray();
-            $foodprice = Food::where('name','=',$name) -> where('type','=', $type)->where('minQty','<',$qty)->where('maxQty','>',$qty)->pluck('unit_price','client_id')->sort()->toArray();
-            $client = Client::find($findclient);
-            $totalprice = $foodprice*$qty;
+        $clients = Food::where('name',$name) -> where('type', $type)->where('minQty','<',$qty)->where('maxQty','>',$qty)->with('client')->paginate(10);
+        return FoodResource::collection($clients);
             
-            $response['status'] = "Success";
-            $response['msg'] = "Found";
-            $response['is_success'] = true;
-            $response['data'] =array('client'=>$client,'totalprice'=>$totalprice);
-            return response()->json($response);
-        }
-        catch(Exception $e)
-        {
-            $response['status'] = "Failed";
-            $response['msg'] = $e->getMessage();
-            $response['is_success'] = false;
-            return response()->json($response); 
-        }
-    }
+     }
 }
