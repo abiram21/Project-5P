@@ -3,7 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Hallcover;
+use App\Client;
 use Illuminate\Http\Request;
+use App\Http\Requests\HallcoverStoreRequest;
+
+use App\Http\Requests\HallcoverUpdateRequest;
+use App\Http\Resources\HallCoverResource;
 
 class HallcoverController extends Controller
 {
@@ -14,7 +19,10 @@ class HallcoverController extends Controller
      */
     public function index()
     {
-        //
+       
+            $hallcover = Hallcover::with('client');
+            return HallCoverResource::collection($hallcover->paginate());
+            
     }
 
     /**
@@ -24,7 +32,7 @@ class HallcoverController extends Controller
      */
     public function create()
     {
-        //
+        
     }
 
     /**
@@ -33,9 +41,22 @@ class HallcoverController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(HallcoverStoreRequest $request)
     {
-        //
+           
+            $hallcover = new hallcover();
+
+                $hallcover->hall_size = $request->hall_size;
+               
+                $hallcover->colors = $request->colors;
+                $hallcover->price = $request->price;
+                
+                $hallcover->client_id = $request->client_id;
+                $hallcover->fac_id = 3;
+
+                $hallcover->save();
+                return HallCoverResource::collection($hallcover->paginate());
+           
     }
 
     /**
@@ -44,9 +65,11 @@ class HallcoverController extends Controller
      * @param  \App\Hallcover  $hallcover
      * @return \Illuminate\Http\Response
      */
-    public function show(Hallcover $hallcover)
+    public function show( $id)
     {
-        //
+       
+            $hallcover = hallcover::find($id);
+            return HallCoverResource::collection($hallcover->paginate(1));
     }
 
     /**
@@ -57,7 +80,7 @@ class HallcoverController extends Controller
      */
     public function edit(Hallcover $hallcover)
     {
-        //
+        
     }
 
     /**
@@ -67,9 +90,20 @@ class HallcoverController extends Controller
      * @param  \App\Hallcover  $hallcover
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Hallcover $hallcover)
+    public function update(HallcoverUpdateRequest $request, $id)
     {
-        //
+        
+            $hallcover = Hallcover::find($id);
+
+                $hallcover->hall_size = $request->hall_size;
+                $hallcover->colors = $request->colors;
+                $hallcover->price = $request->price;
+                $hallcover->client_id = $request->client_id;
+                $hallcover->fac_id = 3;
+                $hallcover->save();
+
+                return HallCoverResource::collection($hallcover->paginate());
+           
     }
 
     /**
@@ -78,8 +112,22 @@ class HallcoverController extends Controller
      * @param  \App\Hallcover  $hallcover
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Hallcover $hallcover)
+    public function delete(Hallcover $hallcover)
     {
-        //
+       
+    }
+    public function destroy($id)
+    {
+       
+            $hallcover = Hallcover::find($id);
+            $hallcover->delete();
+                
+           
+    }
+
+    public function getclient($size)
+    {
+            $clients = Hallcover::where('hall_size',$size)->with('client')->orderBy('price')->paginate(10);
+            return HallCoverResource::collection($clients);
     }
 }
