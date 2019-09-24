@@ -218,4 +218,33 @@ class FoodController extends Controller
             return response()->json($response); 
         }
     }
+
+    public function getclient($name,$type,$qty)
+    {
+        try{
+            $response = array(
+                'status'=>"Failed",
+                'msg'=>'',
+                'is_success'=>false,
+                'data'=>''
+            );
+            $findclient = Food::where('name','=',$name) -> where('type','=', $type)->where('minQty','<',$qty)->where('maxQty','>',$qty)->pluck('client_id')->toArray();
+            $foodprice = Food::where('name','=',$name) -> where('type','=', $type)->where('minQty','<',$qty)->where('maxQty','>',$qty)->pluck('unit_price','client_id')->sort()->toArray();
+            $client = Client::find($findclient);
+            $totalprice = $foodprice*$qty;
+            
+            $response['status'] = "Success";
+            $response['msg'] = "Found";
+            $response['is_success'] = true;
+            $response['data'] =array('client'=>$client,'totalprice'=>$totalprice);
+            return response()->json($response);
+        }
+        catch(Exception $e)
+        {
+            $response['status'] = "Failed";
+            $response['msg'] = $e->getMessage();
+            $response['is_success'] = false;
+            return response()->json($response); 
+        }
+    }
 }
