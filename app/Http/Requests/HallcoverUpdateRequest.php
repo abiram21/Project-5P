@@ -24,9 +24,8 @@ class HallcoverUpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            'length'=>'required|numeric|min:0',
-            'width'=>'required|numeric|min:0',
-            'colors'=>'required|alpha',
+            'hall_size'=>'required|regex:/^[1-9]+[*]+[1-9]+$/',
+            'colors' => 'required|regex:/^[A-Za-z,]+$/',
             'price'=>'required|numeric|min:0'
         ];
     }
