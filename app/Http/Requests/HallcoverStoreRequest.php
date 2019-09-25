@@ -24,7 +24,10 @@ class HallcoverStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            'hall_size'=>'required|regex:/^[1-9]+[*]+[1-9]+$/',
+            'colors' => 'required|regex:/^[A-Za-z,]+$/',
+            'price'=>'required|numeric|min:0'
+ 
         ];
     }
 }

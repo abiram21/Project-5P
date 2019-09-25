@@ -9,7 +9,7 @@ class Chair extends Model
     protected $fillable =['type','extension','range','price_per_coveredchair','price_per_uncoveredchair','fac_id','client_id'];
 
 
-    public function clients()
+    public function client()
     {
         return $this->belongsTo(Client::class);
     }
